@@ -51,8 +51,11 @@ def layout(element, directory):
 
 
 def layout_container(directory, element):
-    new_directory = join(directory, element.name)
-    mkdir(new_directory)
+    if element.name:
+        new_directory = join(directory, element.name)
+        mkdir(new_directory)
+    else:
+        new_directory = directory
     for child in element.values():
         layout(new_directory, child)
     return new_directory

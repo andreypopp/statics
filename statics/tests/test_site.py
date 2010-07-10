@@ -12,7 +12,7 @@ class TestSite(unittest.TestCase):
         site = Site({
             "location:/": {"name": "location_root", "k": "v"},
             "location:/a": {"name": "location_a", "k1": "v1"}})
-        locations = dict((l, (n, c)) for (l, n, c) in site.locations)
+        locations = dict((l, (n, c)) for (l, c, n) in site.locations)
         self.assertEqual(len(locations), 2)
         self.assertTrue("/" in locations)
         location_root = locations["/"]

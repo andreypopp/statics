@@ -35,14 +35,11 @@ def split(filename):
         raise ValueError("Wrong filename: %s" % filename)
 
 
-def item_info(filename):
-    name, extension = split(filename)
-    return ItemInfo(filename, name, extension)
-
-
 def raw_listing(directory):
     for filename in listdir(directory):
-        yield item_info(join(directory, filename))
+        full_filename = join(directory, filename)
+        name, extension = split(full_filename)
+        yield ItemInfo(full_filename, name, extension)
 
 
 def listing(directory, extension_priority=()):
@@ -103,7 +100,8 @@ class Source(object):
             return self._build_file(item_info)
 
     def root(self):
-        return self._build(item_info(self.directory))
+        item_info = ItemInfo(self.directory, "", "")
+        return self._build(item_info)
 
 
 def get_root(directory, extension_priority=None, directory_item_name=None):

@@ -40,6 +40,7 @@ class TestSource(unittest.TestCase):
         source = Source(tempdir, extension_priority=("txt", "html"))
 
         root = source.root()
+        self.assertEqual(root.name, "")
         self.assertEqual(len(root), 4)
 
         self.assertTrue("a" in root)

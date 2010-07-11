@@ -8,7 +8,7 @@ from os.path import basename
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
-from statics.tree import externalmap
+from statics.element import externalmapitem
 from statics.element import ContentElement
 from statics.element import BinaryElement
 from statics.element import Element
@@ -48,10 +48,7 @@ class Page(ContentElement):
 def pages(site, config, item):
     template = get_template(config)
     def make_page(item):
-        if isinstance(item, BinaryItem):
-            return BinaryElement(item.name, item.filename)
-        elif isinstance(item, ContentItem):
+        if isinstance(item, ContentItem):
             return Page(item, template)
-        else:
-            return Element(item.name)
-    return externalmap(make_page, item)
+        return item
+    return externalmapitem(make_page, item)

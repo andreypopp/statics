@@ -57,7 +57,7 @@ def layout_container(directory, element):
     else:
         new_directory = directory
     for child in element.values():
-        layout(new_directory, child)
+        layout(child, new_directory)
     return new_directory
 
 

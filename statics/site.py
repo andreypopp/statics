@@ -12,7 +12,7 @@ __all__ = ["Site"]
 
 
 class Site(ConfigObj):
-    """ Rich wrapper arounf :class:`configobj.ConfigObj`."""
+    """ Rich wrapper around :class:`configobj.ConfigObj`."""
 
     @classmethod
     def from_file(cls, filename):

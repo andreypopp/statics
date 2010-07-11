@@ -10,9 +10,6 @@ from jinja2 import FileSystemLoader
 
 from statics.element import externalmapitem
 from statics.element import ContentElement
-from statics.element import BinaryElement
-from statics.element import Element
-from statics.item import BinaryItem
 from statics.item import ContentItem
 from statics.util import cached_property
 

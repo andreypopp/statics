@@ -145,3 +145,12 @@ def externalmap(fun, tree):
         for child_name, child in node.items():
             queue.append((child_name, mapped_node, child))
     return root
+
+
+def print_tree(tree, ident=0):
+    if ident:
+        print ident*" ", tree
+    else:
+        print tree
+    for child in tree.values():
+        print_tree(child, ident=ident+1)

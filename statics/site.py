@@ -2,6 +2,7 @@
 
 from os.path import abspath
 from os.path import dirname
+from os.path import exists
 
 from configobj import ConfigObj
 
@@ -16,7 +17,10 @@ class Site(ConfigObj):
 
     @classmethod
     def from_file(cls, filename):
+        """ Initialize site object from configuration file."""
         filename = abspath(filename)
+        if not exists(filename):
+            raise ValueError("Configuration file '%s' does not exists.")
         here = dirname(filename)
         site = cls(filename)
         site["DEFAULT"] = {}
@@ -25,6 +29,7 @@ class Site(ConfigObj):
 
     @cached_generator_property
     def locations(self):
+        """ Locations."""
         for section in self.keys():
             if section.startswith("location:"):
                 script_config = self[section]

@@ -1,0 +1,3 @@
+- Fix inefficient implementation of statics.tree.TreeView.
+- Move common patterns from statics.pages to core.
+- Move common patterns from entry point script to core.

@@ -25,8 +25,8 @@ def run():
     objs = sys._getframe().f_back.f_globals
     commands = {}
     for k, v in objs.items():
-        if hasattr(v, "__call__") and hasattr(v, "__command__"):
-            commands[k] = v
+        if hasattr(v, "__call__") and hasattr(v, "__command_name__"):
+            commands[v.__command_name__] = v
     if len(sys.argv) < 2:
         error("Please provide command to run.")
     prog_name, command_name, args = sys.argv[0], sys.argv[1], sys.argv[2:]
@@ -36,7 +36,9 @@ def run():
     command(args)
 
 
-def command(func):
+def command(name):
     """ Mark function as command."""
-    func.__command__ = True
-    return func
+    def command_decorator(func):
+        func.__command_name__ = name
+        return func
+    return command_decorator

@@ -33,6 +33,7 @@ def run():
     if not command_name in commands:
         error("no such command '%s'" % command_name)
     command = commands[command_name]
+    progress("Running '%s' command." % command_name)
     command(args)
 
 

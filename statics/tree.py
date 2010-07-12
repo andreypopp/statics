@@ -6,7 +6,7 @@ from zope.proxy import ProxyBase
 from zope.proxy import getProxiedObject
 from zope.proxy import non_overridable
 
-__all__ = ["TreeMixin", "TreeView", "externalmap"]
+__all__ = ["TreeMixin", "TreeView", "externalmap", "print_tree"]
 
 
 class TreeMixin(object, DictMixin):

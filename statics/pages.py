@@ -2,25 +2,12 @@
 
 # TODO: This is subject to refactoring.
 
-from os.path import dirname
-from os.path import basename
-
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
-
 from statics.element import externalmapitem
 from statics.element import ContentElement
 from statics.item import ContentItem
 from statics.util import cached_property
 
 __all__ = ["pages", "Page"]
-
-
-def get_template(config):
-    template_dir = dirname(config["template"])
-    template_name = basename(config["template"])
-    environment = Environment(loader=FileSystemLoader(template_dir))
-    return environment.get_template(template_name)
 
 
 class Page(ContentElement):
@@ -38,12 +25,16 @@ class Page(ContentElement):
     def metadata(self):
         return self.item.metadata()
 
+    @property
+    def title(self):
+        return self.metadata.get("title")
+
     def render(self):
         return self.template.render({"page": self})
 
 
 def pages(site, config, item):
-    template = get_template(config)
+    template = site.templates.get_template(config["template"])
     def make_page(item):
         if isinstance(item, ContentItem):
             return Page(item, template)

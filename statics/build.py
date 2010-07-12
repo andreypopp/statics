@@ -2,7 +2,10 @@
 
 from os import mkdir
 from os.path import join
+from os.path import isdir
+from os.path import isfile
 from shutil import copy
+from shutil import copytree
 
 from statics.tree import TreeView
 from statics.configuration import query_script
@@ -68,5 +71,8 @@ def layout_content(directory, element):
 
 
 def layout_binary(directory, element):
-    copy(element.filename, directory)
+    if isdir(element.filename):
+        copytree(element.filename, join(directory, element.name))
+    elif isfile(element.filename):
+        copy(element.filename, directory)
     return directory

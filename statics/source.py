@@ -6,6 +6,7 @@ from os.path import isdir
 from os.path import isfile
 from os.path import basename
 from os.path import splitext
+from os.path import samefile
 from sys import maxint
 from collections import namedtuple
 from ordereddict import OrderedDict
@@ -63,10 +64,11 @@ def text_file(filename):
 class Source(object):
 
     def __init__(self, directory, extension_priority=(),
-            directory_item_name="index"):
+            directory_item_name="index", static=()):
         self.directory = directory
         self.extension_priority = extension_priority
         self.directory_item_name = directory_item_name
+        self.static = static
 
     def _build_directory(self, item_info):
         files = OrderedDict((x.name, x) for x
@@ -94,23 +96,32 @@ class Source(object):
         return factory(item_info.name, children=[], filename=item_info.filename)
 
     def _build(self, item_info):
+        if self._belongs_to_static(item_info):
+            return BinaryItem(item_info.name, filename=item_info.filename)
         if isdir(item_info.filename):
             return self._build_directory(item_info)
         elif isfile(item_info.filename):
             return self._build_file(item_info)
+
+    def _belongs_to_static(self, item_info):
+        return any(samefile(x, item_info.filename) for x in self.static)
 
     def root(self):
         item_info = ItemInfo(self.directory, "", "")
         return self._build(item_info)
 
 
-def get_root(directory, extension_priority=None, directory_item_name=None):
+def get_root(directory, extension_priority=None, directory_item_name=None,
+      static=None):
     """ Return root for site."""
     if extension_priority is None:
         extension_priority = ("html", "txt", "rst", "md", "textile")
     if directory_item_name is None:
         directory_item_name = "index"
+    if static is None:
+        static = []
     source = Source(directory,
         extension_priority=extension_priority,
-        directory_item_name=directory_item_name)
+        directory_item_name=directory_item_name,
+        static=static)
     return source.root()

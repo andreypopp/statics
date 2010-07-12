@@ -3,3 +3,4 @@
 - Move common patterns from entry point script to core.
 - Refactoring of statics.cli module:
     - Make command names do not clash with any other functions.
+- Fix templating.

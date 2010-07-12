@@ -3,3 +3,10 @@ Statics -- static site generator
 
 It is another static site generator that is designed to be extensible from the
 ground up.
+
+Basic use is:
+
+    $ statics-init ./mysite
+    $ cd ./mysite
+    $ ./statics.py build
+    $ ls ./build

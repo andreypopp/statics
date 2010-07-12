@@ -122,6 +122,9 @@ class TestTreeView(unittest.TestCase):
         from statics.tree import TreeView
         tree = createTestTree()
         view = TreeView(tree, exclude=["/a/aa", "/c"])
+        self.assertEqual(view.location, "/")
+        self.assertTrue("a" in view)
+        self.assertTrue("b" in view)
         self.assertTrue(not "c" in view)
         self.assertTrue(not "c" in view.keys())
         def getitem_c():
@@ -129,11 +132,22 @@ class TestTreeView(unittest.TestCase):
         self.assertRaises(KeyError, getitem_c)
         view_a = view["a"]
         self.assertTrue(not "aa" in view_a)
+        self.assertTrue("ab" in view_a)
         self.assertTrue(not "aa" in view_a.keys())
         def getitem_a_aa():
             return view_a["aa"]
         self.assertRaises(KeyError, getitem_a_aa)
+        self.assertTrue(not "aa" in view_a.parent["a"])
 
+    def test_child_view(self):
+        from statics.tree import TreeView
+        tree = createTestTree()
+        view = TreeView(tree["a"])
+        self.assertTrue("aa" in view)
+        self.assertTrue("ab" in view)
+        self.assertTrue(view.parent is None)
+        self.assertEqual(view.location, "/a")
+        self.assertEqual(view["aa"].location, "/a/aa")
 
 class TestExternalMap(unittest.TestCase):
 

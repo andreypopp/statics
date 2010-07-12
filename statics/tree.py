@@ -92,13 +92,36 @@ class TreeView(ProxyBase):
 
     # XXX: Very inefficient implementation, but I don't care right now.
 
-    __slots__ = ("exclude", )
+    __slots__ = ("exclude", "view_root_location")
 
-    def __new__(cls, tree, exclude=None):
+    def __new__(cls, tree, exclude=None, view_root_location=None):
         return ProxyBase.__new__(cls, tree)
 
-    def __init__(self, tree, exclude=None):
+    def __init__(self, tree, exclude=None, view_root_location=None):
+        if exclude is None:
+            exclude = []
+        if view_root_location is None:
+            view_root_location = self.location
         self.exclude = exclude
+        self.view_root_location = view_root_location
+
+    def _proxy_to(self, obj):
+        return type(self)(obj, exclude=self.exclude,
+            view_root_location=self.view_root_location)
+
+    @property
+    def parent(self):
+        proxied = getProxiedObject(self)
+        if self.location == self.view_root_location:
+            return None
+        return self._proxy_to(proxied.parent)
+
+    @non_overridable
+    def __getitem__(self, name):
+        child = getProxiedObject(self)[name]
+        if child.location in self.exclude:
+            raise KeyError()
+        return self._proxy_to(child)
 
     @non_overridable
     def __setitem__(self, name, child):
@@ -113,13 +136,6 @@ class TreeView(ProxyBase):
         proxied =  getProxiedObject(self)
         return [k for k in proxied.keys()
                     if not proxied[k].location in self.exclude]
-
-    @non_overridable
-    def __getitem__(self, name):
-        child = getProxiedObject(self)[name]
-        if child.location in self.exclude:
-            raise KeyError()
-        return type(self)(child, exclude=self.exclude)
 
     @non_overridable
     def __contains__(self, name):

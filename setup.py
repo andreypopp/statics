@@ -19,5 +19,5 @@ setup(name="statics",
       zip_safe=True,
       install_requires=requires,
       test_suite="statics.tests",
-      entry_points={"console_scripts": "statics=statics.cli:statics"},
+      entry_points={"console_scripts": "statics-init=statics.cli:statics_init"},
       )

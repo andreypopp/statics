@@ -10,7 +10,7 @@ from statics.item import BinaryItem
 from statics.util import cached_property
 
 __all__ = ["Element", "ContentElement", "BinaryElement", "ContentItemElement",
-           "items_to_elements"]
+           "TemplatedElementMixin", "items_to_elements"]
 
 
 class Element(TreeMixin):
@@ -52,6 +52,19 @@ class ContentItemElement(ContentElement):
 
     def render(self):
         return self.content
+
+
+class TemplatedElementMixin(object):
+    """ ContentElement mixin that is provide content by rendering template.
+
+    This mixin assumes element store template object in ``template`` attribute.
+    """
+
+    def get_context(self):
+        raise NotImplementedError()
+
+    def render(self):
+        return self.template.render(self.get_context())
 
 
 class BinaryElement(Element):

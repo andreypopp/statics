@@ -31,11 +31,11 @@ class MarkdownItem(ContentItem):
     def metadata(self):
         parser = self.get_parser()
         raw_content = super(MarkdownItem, self).content()
-        parser.convert(raw_content)
+        parser.convert(raw_content.decode("utf-8"))
         return exclude_one_element_values(parser.Meta)
 
     def content(self):
         parser = self.get_parser()
         raw_content = super(MarkdownItem, self).content()
-        content = parser.convert(raw_content)
+        content = parser.convert(raw_content.decode("utf-8"))
         return content

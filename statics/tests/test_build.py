@@ -48,3 +48,17 @@ class TestBuild(unittest.TestCase, TestWithLocalRegistry):
         self.assertTrue("ba" in b_element)
         self.assertTrue("bb" in b_element)
         self.assertTrue("added" in b_element)
+
+    def test_no_root_script(self):
+        locations = [("/b", {}, "script2")]
+        root_item = self.createItem()
+        site = None
+        from statics.build import build
+        self.assertRaises(ValueError, build,site,root_item, locations=locations)
+
+    def test_no_script_fount(self):
+        locations = [("/", {}, "script")]
+        root_item = self.createItem()
+        site = None
+        from statics.build import build
+        self.assertRaises(ValueError, build,site,root_item, locations=locations)

@@ -23,7 +23,7 @@ def ordered_locations(locations):
 def build(site, root_item, locations=None):
     """ Build `site`."""
     if locations is None:
-        locations = site.locations
+        locations = site.locations # pragma: nocover
     if not "/" in [l for l, c, s in locations]:
         raise ValueError("No script found for root (/) location.")
 

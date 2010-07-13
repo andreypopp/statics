@@ -5,3 +5,8 @@ Changes
 ---
 
     - Initial release. Not public yet.
+
+0.2
+---
+
+    - Added item type for markdown content.

@@ -80,7 +80,7 @@ class Source(object):
             info = files.pop(self.directory_item_name)
             factory = query_item_factory(info.extension, default=ContentItem)
             item = lambda children: factory(
-                item_info.name, children, info.filename)
+                item_info.name, info.filename, children)
         else:
             item = lambda children: Item(item_info.name, children)
         children = [self._build(x) for x in files.values()]
@@ -93,7 +93,7 @@ class Source(object):
                 factory = ContentItem
             else:
                 factory = BinaryItem
-        return factory(item_info.name, children=[], filename=item_info.filename)
+        return factory(item_info.name, item_info.filename)
 
     def _build(self, item_info):
         if self._belongs_to_static(item_info):

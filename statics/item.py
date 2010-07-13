@@ -25,7 +25,7 @@ class Item(TreeMixin):
         for child in children:
             self[child.name] = child
 
-    def __repr__(self):
+    def __repr__(self): # pragma: nocover
         return "<%s %s at %s>" % (
             self.__class__.__name__, self.name, self.location)
 
@@ -33,7 +33,7 @@ class Item(TreeMixin):
 class BinaryItem(Item):
     """ Item that represent binary content."""
 
-    def __init__(self, name, children=None, filename=None):
+    def __init__(self, name, filename, children=None):
         """ Initialize binary item object with `name`, `children` and
         `filename` arguments.
         """
@@ -49,7 +49,7 @@ class ContentItem(Item):
     and provide their own implementation of `content` or `metadata` methods.
     """
 
-    def __init__(self, name, children=None, filename=None):
+    def __init__(self, name, filename, children=None):
         """ Initialize binary item object with `name`, `children` and
         `filename` arguments.
         """

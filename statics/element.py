@@ -16,8 +16,9 @@ __all__ = ["Element", "ContentElement", "BinaryElement", "ContentItemElement",
 class Element(TreeMixin):
     """ Element."""
 
-    def __init__(self, name, children=None):
+    def __init__(self, name, extension=None, children=None):
         self.name = name
+        self.extension = extension
         self.parent = None
         self.children = OrderedDict()
 
@@ -38,8 +39,10 @@ class ContentElement(Element):
 class ContentItemElement(ContentElement):
     """ Content element, that wraps ContentItem object."""
 
-    def __init__(self, item, children=None):
-        super(ContentItemElement, self).__init__(item.name, children=children)
+    def __init__(self, item, extension=None, children=None):
+        super(ContentItemElement, self).__init__(item.name,
+                                                 extension=extension,
+                                                 children=children)
         self.item = item
 
     @cached_property
@@ -70,8 +73,9 @@ class TemplatedElementMixin(object):
 class BinaryElement(Element):
     """ Element, that wraps binary content."""
 
-    def __init__(self, filename, name, children=None):
-        super(BinaryElement, self).__init__(name, children=children)
+    def __init__(self, filename, name, extension=None, children=None):
+        super(BinaryElement, self).__init__(name, extension=extension,
+                                            children=children)
         self.filename = filename
 
 

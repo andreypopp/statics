@@ -65,9 +65,14 @@ def layout_container(directory, element):
 
 
 def layout_content(directory, element):
-    new_directory = layout_container(directory, element)
-    open(join(new_directory, "index.html"), "w").write(element.render())
-    return new_directory
+    if element.extension is None:
+        new_directory = layout_container(directory, element)
+        open(join(new_directory, "index.html"), "w").write(element.render())
+        return new_directory
+    else:
+        open(join(directory, "%s.%s" % (element.name, element.extension)),
+             "w").write(element.render())
+        return directory
 
 
 def layout_binary(directory, element):

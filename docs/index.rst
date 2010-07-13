@@ -6,7 +6,14 @@ easy-to-use and extensible from the ground up. This is documentation for
 statics, which is separated into two parts -- narrative documentation and API
 reference.
 
-Contents:
+Narrative documentation:
+
+.. toctree::
+   :maxdepth: 2
+
+   getting_started
+
+API reference:
 
 .. toctree::
    :maxdepth: 2

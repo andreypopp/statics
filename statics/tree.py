@@ -1,4 +1,8 @@
-""" Define and work with tree-like structured data."""
+""" Define and work with tree-like structured data.
+
+This module provides :class:`TreeMixin`, :class:`TreeView` and a couple of
+useful functions to work with trees.
+"""
 
 from UserDict import DictMixin
 
@@ -10,21 +14,29 @@ __all__ = ["TreeMixin", "TreeView", "externalmap", "print_tree"]
 
 
 class TreeMixin(object, DictMixin):
-    """ Mixin for classes that represent as tree-like data structures.
+    """ Mixin for classes that represent tree-like data structures.
 
-    This mixin assumes you store children in `children` dict attribute and
-    parent in `parent` and node name in `name`. For accessing children there is
-    dictionary-like interface.
+    This mixin assumes you store children nodes in `children` dict-like
+    attribute, parent node in `parent` attribute and node name in `name`.
+
+    This mixin inherits from :class:`UserDict.DictMixin` to provide dict-like
+    interface to node's children.
+
+    For uses of this mixin see :class:`statics.item.Item` and
+    :class:`statics.element.Element` classes.
     """
 
     @property
     def is_leaf(self):
-        """ Indicates if node has no children."""
+        """ Property, that is true if node has no children."""
         return not self.children
 
     @property
     def location(self):
-        """ Node location inside tree."""
+        """ Node location inside tree.
+
+        Node's location is a string that is like an XPath location.
+        """
         if self.parent is None:
             return "/"
         if self.parent.parent is None:
@@ -32,7 +44,7 @@ class TreeMixin(object, DictMixin):
         return "%s/%s" % (self.parent.location, self.name)
 
     def locate(self, location):
-        """ Locate children by location in form of URI."""
+        """ Locate children inside node by providing its location."""
         if location and location[0] == "/":
             location = location[1:]
         if not location:
@@ -44,6 +56,7 @@ class TreeMixin(object, DictMixin):
         return current
 
     def setlocation(self, location, tree):
+        """ Set `tree` node at specified `location` inside current node."""
         if location and location[-1] == "/":
             location = location[:-1]
         try:
@@ -54,22 +67,23 @@ class TreeMixin(object, DictMixin):
         node[name] = tree
 
     def __setitem__(self, name, child):
-        """ Set children by name.
+        """ Set children to node.
 
         Also see :class:`UserDict.DictMixin`.
         """
         child.parent = self
+        child.name = name
         self.children[name] = child
 
     def __getitem__(self, name):
-        """ Get item by name.
+        """ Get node's children by name.
 
         Also see :class:`UserDict.DictMixin`.
         """
         return self.children[name]
 
     def __delitem__(self, name):
-        """ Delete item by name.
+        """ Delete children from node by name.
 
         Also see :class:`UserDict.DictMixin`.
         """
@@ -78,41 +92,55 @@ class TreeMixin(object, DictMixin):
         return child
 
     def keys(self):
-        """ See :class:`UserDict.DictMixin`."""
+        """ Return names of all node's children.
+
+        Also see :class:`UserDict.DictMixin`.
+        """
         return self.children.keys()
 
     def __contains__(self, name):
-        """ See :class:`UserDict.DictMixin`."""
+        """ Returns true if node has child with specified `name`.
+
+        Also see :class:`UserDict.DictMixin`."""
         return name in self.children
 
 
 class TreeView(ProxyBase):
-    """ View for tree, that provide immutability and can restrict tree to its
-    subtree."""
+    """ View for tree.
+
+    View is used to force immutability on tree data structure and possible to
+    restrict tree to specified subtree.
+    """
 
     # XXX: Very inefficient implementation, but I don't care right now.
 
-    __slots__ = ("exclude", "view_root_location")
+    __slots__ = ("exclude", "_view_root_location")
 
-    def __new__(cls, tree, exclude=None, view_root_location=None):
+    def __new__(cls, tree, exclude=None, _view_root_location=None):
         return ProxyBase.__new__(cls, tree)
 
-    def __init__(self, tree, exclude=None, view_root_location=None):
+    def __init__(self, tree, exclude=None, _view_root_location=None):
+        """ Initialize tree view.
+
+        View initialized by providing `tree` node that would be used as view's
+        root node. Also there is `exlude` argument that is actually can be any
+        iterable of locations inside `tree` for those access would restricted.
+        """
         if exclude is None:
             exclude = []
-        if view_root_location is None:
-            view_root_location = self.location
+        if _view_root_location is None:
+            _view_root_location = self.location
         self.exclude = exclude
-        self.view_root_location = view_root_location
+        self._view_root_location = _view_root_location
 
     def _proxy_to(self, obj):
         return type(self)(obj, exclude=self.exclude,
-            view_root_location=self.view_root_location)
+            _view_root_location=self._view_root_location)
 
     @property
     def parent(self):
         proxied = getProxiedObject(self)
-        if self.location == self.view_root_location:
+        if self.location == self._view_root_location:
             return None
         return self._proxy_to(proxied.parent)
 
@@ -164,6 +192,10 @@ def externalmap(fun, tree):
 
 
 def print_tree(tree, ident=0):
+    """ Print `tree` on stdout.
+
+    Maybe useful for debugging.
+    """
     if ident:
         print ident*" ", tree
     else:

@@ -16,8 +16,8 @@ __all__ = ["TreeMixin", "TreeView", "externalmap", "print_tree"]
 class TreeMixin(object, DictMixin):
     """ Mixin for classes that represent tree-like data structures.
 
-    This mixin assumes you store children nodes in `children` dict-like
-    attribute, parent node in `parent` attribute and node name in `name`.
+    This mixin assumes you store children nodes in ``children`` dict-like
+    attribute, parent node in ``parent`` attribute and node name in ``name``.
 
     This mixin inherits from :class:`UserDict.DictMixin` to provide dict-like
     interface to node's children.
@@ -56,7 +56,7 @@ class TreeMixin(object, DictMixin):
         return current
 
     def setlocation(self, location, tree):
-        """ Set `tree` node at specified `location` inside current node."""
+        """ Set ``tree`` node at specified ``location`` inside current node."""
         if location and location[-1] == "/":
             location = location[:-1]
         try:
@@ -99,7 +99,7 @@ class TreeMixin(object, DictMixin):
         return self.children.keys()
 
     def __contains__(self, name):
-        """ Returns true if node has child with specified `name`.
+        """ Returns true if node has child with specified ``name``.
 
         Also see :class:`UserDict.DictMixin`."""
         return name in self.children
@@ -122,9 +122,9 @@ class TreeView(ProxyBase):
     def __init__(self, tree, exclude=None, _view_root_location=None):
         """ Initialize tree view.
 
-        View initialized by providing `tree` node that would be used as view's
-        root node. Also there is `exlude` argument that is actually can be any
-        iterable of locations inside `tree` for those access would restricted.
+        View initialized by providing ``tree`` node that would be used as view's
+        root node. Also there is ``exlude`` argument that is actually can be any
+        iterable of locations inside ``tree`` for those access would restricted.
         """
         if exclude is None:
             exclude = []
@@ -172,7 +172,7 @@ class TreeView(ProxyBase):
 
 
 def externalmap(fun, tree):
-    """ Map to `tree` to another tree by applying `fun` to each node and
+    """ Map to ``tree`` to another tree by applying ``fun`` to each node and
     treating the result as resulting node.
 
     Resulting tree structure maybe superset of original tree.
@@ -192,7 +192,7 @@ def externalmap(fun, tree):
 
 
 def print_tree(tree, ident=0):
-    """ Print `tree` on stdout.
+    """ Print ``tree`` on stdout.
 
     Maybe useful for debugging.
     """

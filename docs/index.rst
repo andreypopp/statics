@@ -18,6 +18,8 @@ API reference:
 .. toctree::
    :maxdepth: 2
 
+   statics.tree
+
 Indices and tables
 ==================
 

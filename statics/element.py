@@ -27,6 +27,9 @@ class Element(TreeMixin):
         for child in children:
             self[child.name] = child
 
+    def __repr__(self):
+        return "<%s at %s>" % (self.__class__.__name__, self.location)
+
 
 class ContentElement(Element):
     """ Element, that wraps textual content."""

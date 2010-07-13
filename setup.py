@@ -2,7 +2,8 @@ from setuptools import setup
 from setuptools import find_packages
 
 version = "0.2"
-requires = ["ordereddict", "jinja2", "configobj", "zope.component", "zope.proxy", "markdown"]
+requires = ["ordereddict", "jinja2", "configobj", "zope.component",
+            "zope.proxy", "markdown", "feedformatter"]
 long_description = open("README", "r").read() + "\n\n" \
                 + open("CHANGES", "r").read()
 

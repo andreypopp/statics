@@ -38,9 +38,10 @@ def split(filename):
 
 def raw_listing(directory):
     for filename in listdir(directory):
-        full_filename = join(directory, filename)
-        name, extension = split(full_filename)
-        yield ItemInfo(full_filename, name, extension)
+        if not filename.startswith("."):
+            full_filename = join(directory, filename)
+            name, extension = split(full_filename)
+            yield ItemInfo(full_filename, name, extension)
 
 
 def listing(directory, extension_priority=()):

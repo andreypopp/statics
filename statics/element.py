@@ -7,8 +7,10 @@ from statics.tree import TreeMixin
 from statics.item import Item
 from statics.item import ContentItem
 from statics.item import BinaryItem
+from statics.util import cached_property
 
-__all__ = ["Element", "ContentElement", "BinaryElement"]
+__all__ = ["Element", "ContentElement", "BinaryElement", "ContentItemElement",
+           "items_to_elements"]
 
 
 class Element(TreeMixin):
@@ -33,11 +35,20 @@ class ContentElement(Element):
         raise NotImplementedError()
 
 
-class DummyContentElement(ContentElement):
+class ContentItemElement(ContentElement):
+    """ Content element, that wraps ContentItem object."""
 
-    def __init__(self, content, name, children=None):
-        super(DummyContentElement, self).__init__(name, children=children)
-        self.content = content
+    def __init__(self, item, children=None):
+        super(ContentItemElement, self).__init__(item.name, children=children)
+        self.item = item
+
+    @cached_property
+    def metadata(self):
+        return self.item.metadata()
+
+    @cached_property
+    def content(self):
+        return self.item.content()
 
     def render(self):
         return self.content
@@ -51,7 +62,7 @@ class BinaryElement(Element):
         self.filename = filename
 
 
-def externalmapitem(fun, item):
+def items_to_elements(fun, item):
     """ Map items to elements.
 
     Like :function:`statics.tree.externalmap` but implicitely converts all
@@ -62,8 +73,7 @@ def externalmapitem(fun, item):
         if isinstance(maybe_element, BinaryItem):
             return BinaryElement(item.filename, item.name)
         elif isinstance(maybe_element, ContentItem):
-            return DummyContentElement(
-                maybe_element.content, maybe_element.name)
+            return ContentItemElement(item)
         elif isinstance(maybe_element, Item):
             return Element(maybe_element.name)
         return maybe_element

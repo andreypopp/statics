@@ -33,7 +33,7 @@ def split(filename):
             ext = ext[1:]
         return name, ext
     else:
-        raise ValueError("Wrong filename: %s" % filename)
+        raise ValueError("Wrong filename: %s" % filename) # pragma: nocover
 
 
 def raw_listing(directory):
@@ -112,7 +112,7 @@ class Source(object):
 
 
 def get_root(directory, extension_priority=None, directory_item_name=None,
-      static=None):
+             static=None): # pragma: nocover
     """ Return root for site."""
     if extension_priority is None:
         extension_priority = ("html", "txt", "rst", "md", "textile")

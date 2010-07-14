@@ -19,9 +19,8 @@ class Element(TreeMixin):
     is_content = False
     is_binary = False
 
-    def __init__(self, name, extension=None, children=None):
+    def __init__(self, name, children=None):
         self.name = name
-        self.extension = extension
         self.parent = None
         self.children = OrderedDict()
 
@@ -29,6 +28,10 @@ class Element(TreeMixin):
             children = []
         for child in children:
             self[child.name] = child
+
+    @property
+    def link(self):
+        return self.location
 
     def __repr__(self):
         return "<%s at %s>" % (self.__class__.__name__, self.location)
@@ -40,9 +43,12 @@ class BinaryElement(Element):
     is_content = False
     is_binary = True
 
-    def __init__(self, filename, name, extension=None, children=None):
-        super(BinaryElement, self).__init__(name, extension=extension,
-                                            children=children)
+    @property
+    def link(self):
+        return self.location
+
+    def __init__(self, filename, name, children=None):
+        super(BinaryElement, self).__init__(name, children=children)
         self.filename = filename
 
 
@@ -51,6 +57,12 @@ class ContentElement(Element):
 
     is_content = True
     is_binary = False
+
+    @property
+    def link(self):
+        if self.is_leaf and self.extension:
+            return "%s.%s" % (self.location, self.extension)
+        return self.location
 
     def __init__(self, name, extension="html", children=None):
         Element.__init__(self, name, children=children)

@@ -191,14 +191,25 @@ def externalmap(fun, tree):
     return root
 
 
-def print_tree(tree, ident=0):
+def print_tree(tree):
     """ Print ``tree`` on stdout.
 
     Maybe useful for debugging.
+
+    This implementation was derived from iterpipes project by Andrey Vlasovskih.
     """
-    if ident:
-        print ident*" ", tree
-    else:
-        print tree
-    for child in tree.values():
-        print_tree(child, ident=ident+1)
+    # TODO: Add more copyright notices in docstrings.
+    (MID, END, CONT, LAST, ROOT) = ('|-- ', '`-- ', '|   ', '    ', '')
+    def rec(tree, indent, sym):
+        line = indent + sym + repr(tree)
+        children = tree.values()
+        if len(children) == 0:
+            return line
+        else:
+            next_indent = indent + (
+                CONT if sym == MID
+                     else (ROOT if sym == ROOT else LAST))
+            syms = [MID] * (len(children) - 1) + [END]
+            lines = [rec(x, next_indent, sym) for x, sym in zip(children, syms)]
+            return '\n'.join([line] + lines)
+    print rec(tree, "", ROOT)

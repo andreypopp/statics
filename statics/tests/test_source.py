@@ -43,7 +43,7 @@ class TestSource(unittest.TestCase):
         })
 
         source = Source(tempdir, extension_priority=("txt", "html"),
-            static=[join(tempdir, "static")])
+            exclude=[join(tempdir, "static")])
 
         root = source.root()
         self.assertEqual(root.name, "")

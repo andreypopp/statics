@@ -49,12 +49,13 @@ class ContentItem(Item):
     and provide their own implementation of `content` or `metadata` methods.
     """
 
-    def __init__(self, name, filename, children=None):
+    def __init__(self, name, filename, extension="", children=None):
         """ Initialize binary item object with `name`, `children` and
         `filename` arguments.
         """
         super(ContentItem, self).__init__(name, children=children)
         self.filename = filename
+        self.extension = extension
 
     def metadata(self):
         """ Return item's metadata."""

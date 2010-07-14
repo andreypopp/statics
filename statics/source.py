@@ -19,61 +19,86 @@ from statics.configuration import query_item_factory
 __all__ = ["get_root"]
 
 
-ItemInfo = namedtuple("ItemInfo", ["filename", "name", "extension"])
+_BaseFileInfo = namedtuple(
+    "FileInfo", ["filename", "name", "extension", "is_dir"])
 
 
-def split(filename):
+class FileInfo(_BaseFileInfo):
+    """ Named tuple for storing information about file."""
+
+    @property
+    def is_file(self):
+        return not self.is_dir
+
+    @property
+    def basename(self):
+        if self.extension:
+            return "%s.%s" % (self.name, self.extension)
+        return self.name
+
+
+def fileinfo(filename, name=None):
+    """ Construct :class:`FileInfo` object from filename, posible overriding
+    name by ``name`` argument."""
     if isdir(filename):
-        name = basename(filename)
-        return name, ""
+        if name is None:
+            name = basename(filename)
+        return FileInfo(
+            filename=filename, name=name, extension=None, is_dir=True)
     elif isfile(filename):
-        name, ext = splitext(filename)
-        name = basename(name)
-        if ext:
-            ext = ext[1:]
-        return name, ext
+        name_, extension = splitext(filename)
+        if name is None:
+            name = basename(name_)
+        if extension:
+            extension = extension[1:]
+        return FileInfo(
+            filename=filename, name=name, extension=extension, is_dir=False)
     else:
         raise ValueError("Wrong filename: %s" % filename) # pragma: nocover
 
 
-def raw_listing(directory):
+def listing(directory):
+    """ Generate :class:`ItemInfo` objects from all non-hidden files and
+    directories inside ``directory``.
+    """
     for filename in listdir(directory):
         if not filename.startswith("."):
-            full_filename = join(directory, filename)
-            name, extension = split(full_filename)
-            yield ItemInfo(full_filename, name, extension)
+            yield fileinfo(join(directory, filename))
 
 
-def listing(directory, extension_priority=()):
+def unique_sorted_listing(directory, extension_priority=()):
+    """ Generates :class:`ItemInfo` objects that are unique (by name) and
+    sorted with respect to ``extension_priority``."""
     seen = set()
-    def key(item_info):
-        if isdir(item_info.filename):
+    def key(fileinfo):
+        if fileinfo.is_dir:
             return -maxint
-        if item_info.extension in extension_priority:
-            return extension_priority.index(item_info.extension)
+        if fileinfo.extension in extension_priority:
+            return extension_priority.index(fileinfo.extension)
         return maxint
-    for item_info in sorted(raw_listing(directory), key=key):
-        if not item_info.name in seen:
-            seen.add(item_info.name)
-            yield item_info
+    for fileinfo in sorted(listing(directory), key=key):
+        if not fileinfo.name in seen:
+            seen.add(fileinfo.name)
+            yield fileinfo
 
 
 def text_file(filename):
+    """ Returns true if given ``filename`` points to text file."""
     return not "\x00" in open(filename, "r").read(1024)
 
 
 class Source(object):
 
     def __init__(self, directory, extension_priority=(),
-            directory_item_name="index", static=()):
+            directory_item_name="index", exclude=()):
         self.directory = directory
         self.extension_priority = extension_priority
         self.directory_item_name = directory_item_name
-        self.static = static
+        self.exclude = exclude
 
-    def _build_directory(self, item_info):
+    def _build_directory(self, fileinfo):
         files = OrderedDict((x.name, x) for x
-            in listing(item_info.filename,
+            in unique_sorted_listing(fileinfo.filename,
                 extension_priority=self.extension_priority))
 
         if self.directory_item_name in files \
@@ -81,48 +106,48 @@ class Source(object):
             info = files.pop(self.directory_item_name)
             factory = query_item_factory(info.extension, default=ContentItem)
             item = lambda children: factory(
-                item_info.name, info.filename, children)
+                fileinfo.name, info.filename, info.extension, children=children)
         else:
-            item = lambda children: Item(item_info.name, children)
+            item = lambda children: Item(fileinfo.name, children=children)
         children = [self._build(x) for x in files.values()]
         return item(children)
 
-    def _build_file(self, item_info):
-        factory = query_item_factory(item_info.extension)
+    def _build_file(self, fileinfo):
+        factory = query_item_factory(fileinfo.extension)
         if factory is None:
-            if text_file(item_info.filename):
-                factory = ContentItem
+            if text_file(fileinfo.filename):
+                return ContentItem(fileinfo.name, fileinfo.filename)
             else:
-                factory = BinaryItem
-        return factory(item_info.name, item_info.filename)
+                return BinaryItem(fileinfo.basename, fileinfo.filename)
+        else:
+            return factory(fileinfo.name, fileinfo.filename)
 
-    def _build(self, item_info):
-        if self._belongs_to_static(item_info):
-            return BinaryItem(item_info.name, filename=item_info.filename)
-        if isdir(item_info.filename):
-            return self._build_directory(item_info)
-        elif isfile(item_info.filename):
-            return self._build_file(item_info)
+    def _build(self, fileinfo):
+        if self._belongs_to_exclude(fileinfo):
+            return BinaryItem(fileinfo.name, filename=fileinfo.filename)
+        if isdir(fileinfo.filename):
+            return self._build_directory(fileinfo)
+        elif isfile(fileinfo.filename):
+            return self._build_file(fileinfo)
 
-    def _belongs_to_static(self, item_info):
-        return any(samefile(x, item_info.filename) for x in self.static)
+    def _belongs_to_exclude(self, fileinfo):
+        return any(samefile(x, fileinfo.filename) for x in self.exclude)
 
     def root(self):
-        item_info = ItemInfo(self.directory, "", "")
-        return self._build(item_info)
+        return self._build(fileinfo(self.directory, name=""))
 
 
 def get_root(directory, extension_priority=None, directory_item_name=None,
-             static=None): # pragma: nocover
+             exclude=None): # pragma: nocover
     """ Return root for site."""
     if extension_priority is None:
         extension_priority = ("html", "txt", "rst", "md", "textile")
     if directory_item_name is None:
         directory_item_name = "index"
-    if static is None:
-        static = []
+    if exclude is None:
+        exclude = []
     source = Source(directory,
         extension_priority=extension_priority,
         directory_item_name=directory_item_name,
-        static=static)
+        exclude=exclude)
     return source.root()

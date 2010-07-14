@@ -4,6 +4,7 @@ from os import mkdir
 from os.path import join
 from os.path import isdir
 from os.path import isfile
+from os.path import exists
 from shutil import copy
 from shutil import copytree
 
@@ -45,40 +46,45 @@ def build(site, root_item, locations=None):
 
 
 def layout(element, directory):
-    if isinstance(element, ContentElement):
-        return layout_content(directory, element)
-    elif isinstance(element, BinaryElement):
-        return layout_binary(directory, element)
-    elif isinstance(element, Element):
-        return layout_container(directory, element)
+    if element.is_binary:
+        return layout_binary_leaf(element, directory)
+    elif element.is_content and element.is_leaf:
+        return layout_content_leaf(element, directory)
+    elif element.is_content and not element.is_leaf:
+        return layout_content_container(element, directory)
+    else: # just element containers with no content
+        return layout_container(element, directory)
 
 
-def layout_container(directory, element):
-    if element.name:
-        new_directory = join(directory, element.name)
-        mkdir(new_directory)
-    else:
-        new_directory = directory
-    for child in element.values():
-        layout(child, new_directory)
-    return new_directory
-
-
-def layout_content(directory, element):
-    if element.extension is None:
-        new_directory = layout_container(directory, element)
-        open(join(new_directory, "index.html"),
-             "w").write(element.render().encode("utf-8"))
-        return new_directory
-    else:
-        open(join(directory, "%s.%s" % (element.name, element.extension)),
-             "w").write(element.render().encode("utf-8"))
-        return directory
-
-
-def layout_binary(directory, element):
+def layout_binary_leaf(element, directory):
     if isdir(element.filename):
         copytree(element.filename, join(directory, element.name))
     elif isfile(element.filename):
         copy(element.filename, directory)
+    return directory
+
+
+def layout_content_leaf(element, directory):
+    filename = join(directory, "%s.%s" % (element.name, element.extension))
+    open(filename, "w").write(element.render().encode("utf-8"))
+    return directory
+
+
+def layout_content_container(element, directory):
+    directory = join(directory, element.name)
+    if not exists(directory):
+        mkdir(directory)
+    filename = join(directory, "index.%s" % element.extension)
+    open(filename, "w").write(element.render().encode("utf-8"))
+    for child in element.values():
+        layout(child, directory)
+    return directory
+
+
+def layout_container(element, directory):
+    directory = join(directory, element.name)
+    if not exists(directory):
+        mkdir(directory)
+    for child in element.values():
+        layout(child, directory)
     return directory

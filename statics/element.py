@@ -16,6 +16,9 @@ __all__ = ["Element", "ContentElement", "BinaryElement", "ContentItemElement",
 class Element(TreeMixin):
     """ Element."""
 
+    is_content = False
+    is_binary = False
+
     def __init__(self, name, extension=None, children=None):
         self.name = name
         self.extension = extension
@@ -31,8 +34,27 @@ class Element(TreeMixin):
         return "<%s at %s>" % (self.__class__.__name__, self.location)
 
 
+class BinaryElement(Element):
+    """ Element, that wraps binary content."""
+
+    is_content = False
+    is_binary = True
+
+    def __init__(self, filename, name, extension=None, children=None):
+        super(BinaryElement, self).__init__(name, extension=extension,
+                                            children=children)
+        self.filename = filename
+
+
 class ContentElement(Element):
     """ Element, that wraps textual content."""
+
+    is_content = True
+    is_binary = False
+
+    def __init__(self, name, extension="html", children=None):
+        Element.__init__(self, name, children=children)
+        self.extension = extension
 
     def render(self):
         """ Render content into HTML."""
@@ -42,7 +64,7 @@ class ContentElement(Element):
 class ContentItemElement(ContentElement):
     """ Content element, that wraps ContentItem object."""
 
-    def __init__(self, item, extension=None, children=None):
+    def __init__(self, item, extension="html", children=None):
         super(ContentItemElement, self).__init__(item.name,
                                                  extension=extension,
                                                  children=children)
@@ -71,15 +93,6 @@ class TemplatedElementMixin(object):
 
     def render(self):
         return self.template.render(self.get_context())
-
-
-class BinaryElement(Element):
-    """ Element, that wraps binary content."""
-
-    def __init__(self, filename, name, extension=None, children=None):
-        super(BinaryElement, self).__init__(name, extension=extension,
-                                            children=children)
-        self.filename = filename
 
 
 def items_to_elements(fun, item):

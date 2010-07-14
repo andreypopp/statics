@@ -12,10 +12,7 @@ class Page(element.TemplatedElementMixin, element.ContentItemElement):
         element.ContentItemElement.__init__(self, item, children=children)
         self.site = site
         self.template = template
-
-    @property
-    def title(self):
-        return self.metadata.get("title")
+        self.title = self.metadata.get("title")
 
     def get_context(self):
         return {"page": self, "site": self.site}

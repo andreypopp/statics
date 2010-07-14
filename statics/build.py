@@ -21,7 +21,7 @@ def ordered_locations(locations):
     return sorted(locations, reverse=True)
 
 
-def build(site, root_item, locations=None):
+def build(site, root, locations=None):
     """ Build `site`."""
     if locations is None:
         locations = site.locations # pragma: nocover
@@ -30,7 +30,7 @@ def build(site, root_item, locations=None):
 
     builded = []
     for location, script_config, script_name in ordered_locations(locations):
-        view = TreeView(root_item,
+        view = TreeView(root,
             exclude=[l for l, n, c in locations if not l == location])
         item = view.locate(location)
         script = query_script(script_name)

@@ -2,14 +2,14 @@
 
 import unittest
 
-__all__ = ["TestSite"]
+__all__ = ["TestBaseSite"]
 
 
-class TestSite(unittest.TestCase):
+class TestBaseSite(unittest.TestCase):
 
     def test_locations(self):
-        from statics.site import Site
-        site = Site({
+        from statics.site import BaseSite
+        site = BaseSite({
             "location:/": {"name": "location_root", "k": "v"},
             "location:/a": {"name": "location_a", "k1": "v1"}})
         locations = dict((l, (n, c)) for (l, c, n) in site.locations)

@@ -11,6 +11,10 @@ from sys import maxint
 from collections import namedtuple
 from ordereddict import OrderedDict
 
+from generic.multidispatch import multifunction
+from generic.multidispatch import multimethod
+from generic.multidispatch import has_multimethods
+
 from statics.item import Item
 from statics.item import BinaryItem
 from statics.item import ContentItem
@@ -19,16 +23,7 @@ from statics.configuration import query_item_factory
 __all__ = ["get_root"]
 
 
-_BaseFileInfo = namedtuple(
-    "FileInfo", ["filename", "name", "extension", "is_dir"])
-
-
-class FileInfo(_BaseFileInfo):
-    """ Named tuple for storing information about file."""
-
-    @property
-    def is_file(self):
-        return not self.is_dir
+class NodeInfo(namedtuple("NodeInfo", ["filename", "name", "extension"])):
 
     @property
     def basename(self):
@@ -37,22 +32,28 @@ class FileInfo(_BaseFileInfo):
         return self.name
 
 
+class FileInfo(NodeInfo):
+    """ Named tuple for storing information about file."""
+
+
+class DirectoryInfo(NodeInfo):
+    """ Named tuple for storing information about directory."""
+
+
 def fileinfo(filename, name=None):
     """ Construct :class:`FileInfo` object from filename, posible overriding
     name by ``name`` argument."""
     if isdir(filename):
         if name is None:
             name = basename(filename)
-        return FileInfo(
-            filename=filename, name=name, extension=None, is_dir=True)
+        return DirectoryInfo(filename=filename, name=name, extension=None)
     elif isfile(filename):
         name_, extension = splitext(filename)
         if name is None:
             name = basename(name_)
         if extension:
             extension = extension[1:]
-        return FileInfo(
-            filename=filename, name=name, extension=extension, is_dir=False)
+        return FileInfo(filename=filename, name=name, extension=extension)
     else:
         raise ValueError("Wrong filename: %s" % filename) # pragma: nocover
 
@@ -70,9 +71,11 @@ def unique_sorted_listing(directory, extension_priority=()):
     """ Generates :class:`ItemInfo` objects that are unique (by name) and
     sorted with respect to ``extension_priority``."""
     seen = set()
+    @multifunction(DirectoryInfo)
+    def key(dirnfo):
+        return -maxint
+    @key.when(FileInfo)
     def key(fileinfo):
-        if fileinfo.is_dir:
-            return -maxint
         if fileinfo.extension in extension_priority:
             return extension_priority.index(fileinfo.extension)
         return maxint
@@ -87,6 +90,7 @@ def text_file(filename):
     return not "\x00" in open(filename, "r").read(1024)
 
 
+@has_multimethods
 class Source(object):
 
     def __init__(self, directory, extension_priority=(),
@@ -96,7 +100,10 @@ class Source(object):
         self.directory_item_name = directory_item_name
         self.exclude = exclude
 
-    def _build_directory(self, fileinfo):
+    @multimethod(DirectoryInfo)
+    def _build(self, fileinfo):
+        if self._belongs_to_exclude(fileinfo):
+            return BinaryItem(fileinfo.name, filename=fileinfo.filename)
         files = OrderedDict((x.name, x) for x
             in unique_sorted_listing(fileinfo.filename,
                 extension_priority=self.extension_priority))
@@ -112,7 +119,10 @@ class Source(object):
         children = [self._build(x) for x in files.values()]
         return item(children)
 
-    def _build_file(self, fileinfo):
+    @_build.when(FileInfo)
+    def _build(self, fileinfo):
+        if self._belongs_to_exclude(fileinfo):
+            return BinaryItem(fileinfo.name, filename=fileinfo.filename)
         factory = query_item_factory(fileinfo.extension)
         if factory is None:
             if text_file(fileinfo.filename):
@@ -121,14 +131,6 @@ class Source(object):
                 return BinaryItem(fileinfo.basename, fileinfo.filename)
         else:
             return factory(fileinfo.name, fileinfo.filename)
-
-    def _build(self, fileinfo):
-        if self._belongs_to_exclude(fileinfo):
-            return BinaryItem(fileinfo.name, filename=fileinfo.filename)
-        if isdir(fileinfo.filename):
-            return self._build_directory(fileinfo)
-        elif isfile(fileinfo.filename):
-            return self._build_file(fileinfo)
 
     def _belongs_to_exclude(self, fileinfo):
         return any(samefile(x, fileinfo.filename) for x in self.exclude)

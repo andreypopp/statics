@@ -8,6 +8,8 @@ from os.path import exists
 from shutil import copy
 from shutil import copytree
 
+from generic.multidispatch import multifunction
+
 from statics.tree import TreeView
 from statics.configuration import query_script
 from statics.element import ContentElement
@@ -45,18 +47,8 @@ def build(site, root, locations=None):
     return root_element
 
 
+@multifunction(BinaryElement)
 def layout(element, directory):
-    if element.is_binary:
-        return layout_binary_leaf(element, directory)
-    elif element.is_content and element.is_leaf:
-        return layout_content_leaf(element, directory)
-    elif element.is_content and not element.is_leaf:
-        return layout_content_container(element, directory)
-    else: # just element containers with no content
-        return layout_container(element, directory)
-
-
-def layout_binary_leaf(element, directory):
     if isdir(element.filename):
         copytree(element.filename, join(directory, element.name))
     elif isfile(element.filename):
@@ -64,24 +56,25 @@ def layout_binary_leaf(element, directory):
     return directory
 
 
-def layout_content_leaf(element, directory):
-    filename = join(directory, "%s.%s" % (element.name, element.extension))
-    open(filename, "w").write(element.render().encode("utf-8"))
-    return directory
+@layout.when(ContentElement)
+def layout(element, directory):
+    if element.is_leaf:
+        filename = join(directory, "%s.%s" % (element.name, element.extension))
+        open(filename, "w").write(element.render().encode("utf-8"))
+        return directory
+    else:
+        directory = join(directory, element.name)
+        if not exists(directory):
+            mkdir(directory)
+        filename = join(directory, "index.%s" % element.extension)
+        open(filename, "w").write(element.render().encode("utf-8"))
+        for child in element.values():
+            layout(child, directory)
+        return directory
 
 
-def layout_content_container(element, directory):
-    directory = join(directory, element.name)
-    if not exists(directory):
-        mkdir(directory)
-    filename = join(directory, "index.%s" % element.extension)
-    open(filename, "w").write(element.render().encode("utf-8"))
-    for child in element.values():
-        layout(child, directory)
-    return directory
-
-
-def layout_container(element, directory):
+@layout.when(Element)
+def layout(element, directory):
     directory = join(directory, element.name)
     if not exists(directory):
         mkdir(directory)

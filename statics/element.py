@@ -2,12 +2,13 @@
 
 from ordereddict import OrderedDict
 
-from statics.tree import externalmap
 from statics.tree import TreeMixin
 from statics.item import Item
 from statics.item import ContentItem
 from statics.item import BinaryItem
 from statics.util import cached_property
+
+from generic.multidispatch import multifunction
 
 __all__ = ["Element", "ContentElement", "BinaryElement", "ContentItemElement",
            "TemplatedElementMixin", "items_to_elements"]
@@ -107,19 +108,14 @@ class TemplatedElementMixin(object):
         return self.template.render(self.get_context())
 
 
-def items_to_elements(fun, item):
-    """ Map items to elements.
+@multifunction(BinaryItem)
+def from_item(item):
+    return BinaryElement(item.filename, item.name)
 
-    Like :function:`statics.tree.externalmap` but implicitely converts all
-    items to elements.
-    """
-    def fun_(item):
-        maybe_element = fun(item)
-        if isinstance(maybe_element, BinaryItem):
-            return BinaryElement(item.filename, item.name)
-        elif isinstance(maybe_element, ContentItem):
-            return ContentItemElement(item)
-        elif isinstance(maybe_element, Item):
-            return Element(maybe_element.name)
-        return maybe_element
-    return externalmap(fun_, item)
+@from_item.when(ContentItem)
+def from_item(item):
+    return ContentItemElement(item)
+
+@from_item.when(Item)
+def from_item(item):
+    return Element(item.name)

@@ -23,5 +23,5 @@ def pages(site, config, item):
     def make_page(item):
         if isinstance(item, ContentItem):
             return Page(item, site, template)
-        return item
-    return element.items_to_elements(make_page, item)
+        return element.from_item(item)
+    return tree.externalmap(make_page, item)

@@ -101,11 +101,11 @@ class Source(object):
         self.exclude = exclude
 
     @multimethod(DirectoryInfo)
-    def _build(self, fileinfo):
-        if self._belongs_to_exclude(fileinfo):
-            return BinaryItem(fileinfo.name, filename=fileinfo.filename)
+    def _build(self, dirinfo):
+        if self._belongs_to_exclude(dirinfo):
+            return BinaryItem(dirinfo.name, filename=dirinfo.filename)
         files = OrderedDict((x.name, x) for x
-            in unique_sorted_listing(fileinfo.filename,
+            in unique_sorted_listing(dirinfo.filename,
                 extension_priority=self.extension_priority))
 
         if self.directory_item_name in files \
@@ -113,9 +113,9 @@ class Source(object):
             info = files.pop(self.directory_item_name)
             factory = query_item_factory(info.extension, default=ContentItem)
             item = lambda children: factory(
-                fileinfo.name, info.filename, info.extension, children=children)
+                dirinfo.name, info.filename, info.extension, children=children)
         else:
-            item = lambda children: Item(fileinfo.name, children=children)
+            item = lambda children: Item(dirinfo.name, children=children)
         children = [self._build(x) for x in files.values()]
         return item(children)
 
